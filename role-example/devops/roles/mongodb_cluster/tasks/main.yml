@@ -1,0 +1,67 @@
+---
+# tasks file for roles/mongodb_cluster
+
+- name: Install Import the MongoDB public GPG Key
+  apt_key:
+    url: "{{gpg_key}}"
+    state: present 
+
+- name: Add MongoDB repository
+  apt_repository:
+    repo: "{{mongo_repo}}"
+    state: present
+
+- name: install mongodb
+  apt: 
+    pkg: "{{package}}"
+    state: latest 
+    update_cache: yes
+
+- name: install python3-pip
+  apt: 
+    pkg: "{{py_package}}"
+    state: latest 
+
+- name: pymongo install
+  shell : pip3 install pymongo==3.12.1     # Latest pymongo have issue with replicaset it doesn't
+                                           # Initilize the cluster , it can verify the replicaset  
+    
+- name: Mongodb Db Path creation
+  file:
+    path: "{{db_path}}"
+    owner: mongodb
+    group: mongodb
+
+- name: Apply mongo configuration
+  template:
+    src: mongod.conf.j2
+    dest: /etc/mongod.conf
+  tags:
+  - conf
+  notify:
+  - start mongodb
+
+- name: Force all notified handlers to run at this point, not waiting for normal sync points
+  meta: flush_handlers
+
+#- name: Check replicaset is healthy, fail if not after first attempt
+#  community.mongodb.mongodb_status:
+#    replica_set: mongodb-replicaset
+  #when: ansible_hostname == "mongodb1"
+#  tags:
+#  - mongo
+
+- name: Ensure replicaset  exists
+  mongodb_replicaset:
+    login_host: localhost
+    replica_set: mongodb-replicaset
+    members:
+    - host: mongodb1:27017
+      priority: 1
+    - host: mongodb2:27017
+      priority: 0.7
+    - host: mongodb3:27017
+      priority: 0.5
+  when: groups.mongodb.index(inventory_hostname) == 0
+  tags:
+  - replica

@@ -1,0 +1,71 @@
+---
+#- name: Install Import the MongoDB public GPG Key
+#  shell: wget -qO - "{gpg_key}}" | sudo apt-key add -
+
+-   name: Mongodb installation
+    hosts: mongodb
+    become: yes
+    vars:
+      gpg_key:  https://www.mongodb.org/static/pgp/server-5.0.asc
+      mongo_repo: 'deb https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse'
+      package: 'mongodb-org'
+      service_name: 'mongod'
+      replica_set: 'mongodb-replicaset'
+      db_path: /var/lib/mongodb
+      py_package: 'python3-pip'
+
+    tasks:
+        - name: Install Import the MongoDB public GPG Key
+          apt_key:
+            url: "{{gpg_key}}"
+            state: present 
+
+        - name: Add MongoDB repository
+          apt_repository:
+            repo: "{{mongo_repo}}"
+            state: present
+
+        - name: install mongodb
+          apt: 
+            pkg: "{{package}}"
+            state: latest 
+            update_cache: yes
+
+        - name: install python3-pip
+          apt: 
+            pkg: "{{py_package}}"
+            state: latest 
+        
+        - name: pymongo install
+          shell : pip3 install pymongo==3.12.1
+          tags:
+          - py
+        
+        - name: start mongodb
+          service: 
+            name: "{{service_name}}" 
+            state: started    
+
+        - name: Mongodb Db Path creation
+          file:
+            path: "{{db_path}}"
+            owner: mongodb
+            group: mongodb
+        
+        - name: Ensure replicaset  exists
+          mongodb_replicaset:
+            login_host: localhost
+            replica_set: rs0
+            members:
+            - host: 3.83.54.101:27017
+              priority: 1
+            - host: 184.73.65.98:27017
+              priority: 0.5
+            - host: 18.212.1.111:27017
+              priority: 0.5
+          when: groups.mongodb.index(inventory_hostname) == 0
+          tags:
+          - replica 
+        
+    
+        

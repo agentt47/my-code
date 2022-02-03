@@ -1,0 +1,15 @@
+---
+-   name: Mongodb Replicaset Cluster Setup
+    hosts: mongodb
+    become: yes
+
+   # pre_tasks:
+   # - debug:
+   #     msg: 'Beginning Mongodb Installation.'
+
+    roles:
+    - mongodb_cluster
+
+   # post_tasks:
+   # - debug:
+   #     msg: 'CLuster Setup Completed.'

@@ -1,0 +1,36 @@
+-   name: Mongodb installation
+    hosts: 54.196.153.28
+    become: yes
+    vars:
+      gpg_key:  https://www.mongodb.org/static/pgp/server-5.0.asc
+      mongo_repo: 'deb https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse'
+      package: 'mongodb-org'
+      service_name: 'mongod'
+      replica_set: 'mongodb-replicaset'
+      db_path: /var/lib/mongodb
+      py_package: 'python3-pip'
+
+    tasks:
+        - name: Install Import the MongoDB public GPG Key
+          apt_key:
+            url: "{{gpg_key}}"
+            state: present 
+
+        - name: Add MongoDB repository
+          apt_repository:
+            repo: "{{mongo_repo}}"
+            state: present
+
+        - name: install mongodb
+          apt: 
+            pkg: "{{package}}"
+            state: latest 
+            update_cache: yes
+
+        - name: install python3-pip
+          apt: 
+            pkg: "{{py_package}}"
+            state: latest 
+        
+        - name: pymongo install
+          shell : pip3 install pymongo

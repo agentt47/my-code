@@ -1,0 +1,11 @@
+---
+# defaults file for alertmanager
+user_name: alertmanager
+group_name: alertmanager
+alertmanager_config_dir: /etc/alertmanager/
+alertmanager_data_dir: /etc/alertmanager/data/
+alertmanager_binary_install_dir: /usr/local/bin
+alertmanager_version: 0.23.0
+alertmanager_slack_api_url: https://hooks.slack.com/services/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
+slack_receivers: slack-notifications
+slack_channel: #alerts 

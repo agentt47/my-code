@@ -1,0 +1,3 @@
+{% for secondary in groups['mongo_secondary'] %}
+rs.add({ host: "{{ secondary }}:27017"})
+{% endfor %}

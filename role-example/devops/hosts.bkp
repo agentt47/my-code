@@ -1,0 +1,20 @@
+## Unmanaged host 
+#ec2-3-83-241-187.compute-1.amazonaws.com ansible_user=ec2-user
+
+## Aliases host
+
+#jumper ansible_host=3.83.241.187 ansible_user=ec2-user
+
+##Managed host using Group
+[mongodb]
+
+54.208.196.193   ansible_user=ubuntu ansible_ssh_private_key_file=/home/opstree/ansible.pem
+#3.87.65.58  ansible_user=ubuntu ansible_ssh_private_key_file=/home/opstree/ansible.pem
+#54.210.9.16  ansible_user=ubuntu
+
+[mongo_master]
+54.208.196.193  ansible_user=ubuntu
+
+[mongo_secondary]
+54.145.139.161  ansible_user=ubuntu
+#54.210.9.16 ansible_user=ubuntu

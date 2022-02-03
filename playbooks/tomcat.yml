@@ -1,0 +1,17 @@
+---
+- name: Create tomcat group
+  group:
+    name: "{{tomcat_group}}"
+    state: present
+
+- name: Create tomcat user
+  user:
+    name: "{{tomcat_user}}"
+    state: present
+    group: "{{tomcat_group}}"
+
+- name: Java installation
+  yum:
+    name: "{{Java_Package}}"
+    state: present
+    

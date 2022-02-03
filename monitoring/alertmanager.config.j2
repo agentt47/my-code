@@ -1,0 +1,12 @@
+global:
+  resolve_timeout: 1m
+  slack_api_url: {{alertmanager_slack_api_url}}
+
+route:
+  receiver: {{slack_receivers}}
+
+receivers:
+- name: {{slack_receivers}}
+  slack_configs:
+  - channel: {{slack_channel}}
+    send_resolved: true

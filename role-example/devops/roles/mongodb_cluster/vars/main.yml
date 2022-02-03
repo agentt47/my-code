@@ -1,0 +1,9 @@
+---
+# vars file for roles/mongodb_cluster
+gpg_key:  https://www.mongodb.org/static/pgp/server-5.0.asc
+mongo_repo: 'deb https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse'
+package: 'mongodb-org'
+service_name: 'mongod'
+replica_set: 'mongodb-replicaset'
+db_path: '/var/lib/mongodb'
+py_package: 'python3-pip'

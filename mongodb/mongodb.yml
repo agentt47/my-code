@@ -1,0 +1,64 @@
+---
+#- name: Install Import the MongoDB public GPG Key
+#  shell: wget -qO - "{gpg_key}}" | sudo apt-key add -
+
+-   name: Mongodb installation
+    hosts: mongodb
+    remote_user: root
+    become: yes
+    #gather_facts: no
+    vars:
+      gpg_key:  https://www.mongodb.org/static/pgp/server-5.0.asc
+      mongo_repo: 'deb https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse'
+      package: 'mongodb-org'
+      service_name: 'mongod'
+      replica_set: 'mongodb-replicaset'
+      db_path: /var/lib/mongodb
+    tasks:
+        - name: Install Import the MongoDB public GPG Key
+          apt_key:
+            url: "{{gpg_key}}"
+            state: present 
+
+        - name: Add MongoDB repository
+          apt_repository:
+            repo: "{{mongo_repo}}"
+            state: present
+
+        - name: install mongodb
+          apt: 
+            pkg: "{{package}}"
+            state: latest 
+            update_cache: yes
+          notify:
+          - start mongodb
+
+        - name: Mongodb Db Path creation
+          file:
+            path: "{{db_path}}"
+            owner: mongodb
+            group: mongodb
+
+      ##  - name: What is my inventory_hostname
+      ##    debug:
+      #      msg: "server name : {{ansible_fqdn}}"
+      #    tags: 
+      #      - fqdn
+        - name: Apply mongo configuration
+          template:
+            src: mongod.conf.j2
+            dest: /etc/mongod.conf
+          notify:
+          - restart mongodb
+
+
+    handlers:
+        - name: start mongodb
+          service: 
+            name: "{{service_name}}" 
+            state: started
+
+        - name: restart mongodb
+          service:
+            name: "{{service_name}}"
+            state: restarted

@@ -1,0 +1,8 @@
+---
+# defaults file for prometheus
+user_name: prometheus
+group_name: prometheus
+prometheus_config_dir: /etc/prometheus/
+prometheus_data_dir: /etc/prometheus/data/
+prometheus_binary_install_dir: /usr/local/bin
+prometheus_version: 2.32.1

@@ -1,0 +1,83 @@
+-   name: Prometheus Installation
+    hosts: all
+    become: yes
+    vars:
+      user_name: prometheus
+      group_name: prometheus
+      prometheus_config_dir: /etc/prometheus/
+      prometheus_data_dir: /etc/prometheus/data/
+      prometheus_binary_install_dir: /usr/local/bin
+      prometheus_version: 2.32.1
+    tasks:
+      - name: Creating Group For Prometheus 
+        group:
+          name: "{{group_name}}"
+          state: present
+  
+      - name: Creating User For Prometheus Setup
+        user:
+          name: "{{user_name}}"
+          home: "{{prometheus_config_dir}}"
+          shell: /bin/bash
+          group: "{{group_name}}"
+
+      - name: Creating Prometheus Directory
+        file:
+            path: "{{item}}"
+            state: directory
+            owner: "{{user_name}}"
+            group: "{{group_name}}"
+            mode: 0770
+        with_items:
+          - "{{prometheus_config_dir}}"
+          - "{{prometheus_config_dir}}data"
+          - "{{prometheus_config_dir}}rules"
+
+      - name: Download Prometheus binary 
+        get_url:
+            url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
+            dest: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
+
+      - name: unpack prometheus binaries
+        unarchive:
+            src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
+            dest: "/tmp/"
+            remote_src: yes
+      - name: propagate official prometheus and promtool binaries
+        copy:
+            src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}"
+            dest: "{{ prometheus_binary_install_dir }}/{{ item }}"
+            mode: 0755
+            owner: "{{user_name}}"
+            group: "{{group_name}}"
+            remote_src: yes
+        with_items:
+          - prometheus
+          - promtool
+          
+      - name: propagate official console templates
+        copy:
+            src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}/"
+            dest: "{{ prometheus_config_dir }}/{{ item }}/"
+            mode: 0644
+            owner: "{{user_name}}"
+            group: "{{group_name}}"
+            remote_src: yes
+        with_items:
+          - console_libraries
+          - consoles
+  
+      - name: Install Prometheus systemd service
+        template:
+            src: prometheus.service.j2
+            dest: /etc/systemd/system/prometheus.service
+
+      - name: Configure  Prometheus 
+        template:
+            src: prometheus.config.j2
+            dest: "{{prometheus_config_dir}}/prometheus.yml"
+
+      - name: Start service httpd, if not running
+        service:
+            name: prometheus
+            state: started

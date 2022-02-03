@@ -1,0 +1,6 @@
+---
+# handlers file for roles/mongodb_cluster
+- name: start mongodb
+  service: 
+    name: "{{service_name}}" 
+    state: started

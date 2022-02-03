@@ -1,0 +1,49 @@
+---
+# tasks file for roles/mongodb_cluster
+- name: Install Import the MongoDB public GPG Key
+  apt_key:
+    url: "{{gpg_key}}"
+    state: present 
+
+- name: Add MongoDB repository
+  apt_repository:
+    repo: "{{mongo_repo}}"
+    state: present
+
+- name: install mongodb
+  apt: 
+    pkg: "{{package}}"
+    state: latest 
+    update_cache: yes
+    
+- name: Mongodb Db Path creation
+  file:
+    path: "{{db_path}}"
+    owner: mongodb
+    group: mongodb
+
+- name: Apply mongo configuration
+  template:
+    src: mongod.conf.j2
+    dest: /etc/mongod.conf
+  notify:
+  - start mongodb
+
+- name: Add necessary files
+  template: 
+    src: "{{item}}.js.j2"
+    dest: "./{{item}}.js"
+  loop:
+    - initReplicaset
+    - addMembers
+
+- name: Force all notified handlers to run at this point, not waiting for normal sync points
+  meta: flush_handlers
+
+- name: Init replicaset on primary {{ inventory_hostname }} 
+  shell:  mongo ./initReplicaset.js
+  when: inventory_hostname in groups['mongo_master']
+
+- name: Add replicaset members on primary {{ inventory_hostname }}
+  shell: mongo ./addMembers.js
+  when: inventory_hostname in groups['mongo_master']

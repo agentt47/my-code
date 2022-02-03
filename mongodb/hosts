@@ -1,0 +1,20 @@
+## Unmanaged host 
+#ec2-3-83-241-187.compute-1.amazonaws.com ansible_user=ec2-user
+
+## Aliases host
+
+#jumper ansible_host=3.83.241.187 ansible_user=ec2-user
+
+##Managed host using Group
+[mongodb]
+#107.23.94.131  ansible_user=ubuntu # ansible_become=true ansible_become_user=nitin
+#3.88.60.243   ansible_user=ubuntu
+3.88.165.24  ansible_user=ubuntu
+3.86.60.254  ansible_user=ubuntu
+
+[mongo_master]
+3.88.165.24  ansible_user=ubuntu
+
+[mongo_secondary]
+3.86.60.254  ansible_user=ubuntu
+

@@ -1,0 +1,62 @@
+---
+# tasks file for alertmanager
+
+- name: Creating Group For alertmanager 
+  group:
+    name: "{{group_name}}"
+    state: present
+
+- name: Creating User For alertmanager Setup
+  user:
+    name: "{{user_name}}"
+    home: "{{alertmanager_config_dir}}"
+    shell: /bin/bash
+    group: "{{group_name}}"
+
+- name: Creating alertmanager Directory
+  file:
+      path: "{{item}}"
+      state: directory
+      owner: "{{user_name}}"
+      group: "{{group_name}}"
+      mode: 0770
+  with_items:
+    - "{{alertmanager_config_dir}}"
+    - "{{alertmanager_config_dir}}data"
+    
+- name: Download alertmanager binary 
+  get_url:
+      url: "https://github.com/prometheus/alertmanager/releases/download/v{{ alertmanager_version }}/alertmanager-{{ alertmanager_version }}.linux-amd64.tar.gz"
+      dest: "/tmp/alertmanager-{{ alertmanager_version }}.linux-amd64.tar.gz"
+
+- name: unpack alertmanager binaries
+  unarchive:
+      src: "/tmp/alertmanager-{{ alertmanager_version }}.linux-amd64.tar.gz"
+      dest: "/tmp/"
+      remote_src: yes
+- name: propagate official alertmanager and amtool binaries
+  copy:
+      src: "/tmp/alertmanager-{{ alertmanager_version }}.linux-amd64/{{ item }}"
+      dest: "{{ alertmanager_binary_install_dir }}/{{ item }}"
+      mode: 0755
+      owner: "{{user_name}}"
+      group: "{{group_name}}"
+      remote_src: yes
+  with_items:
+    - alertmanager
+    - amtool
+    
+- name: Install alertmanager systemd service
+  template:
+      src: alertmanager.service.j2
+      dest: /etc/systemd/system/alertmanager.service
+
+- name: Configure  alertmanager 
+  template:
+      src: alertmanager.config.j2
+      dest: "{{alertmanager_config_dir}}/alertmanager.yml"
+
+- name: Start service httpd, if not running
+  service:
+      name: alertmanager
+      state: started

@@ -1,0 +1,37 @@
+---
+-   name: Create user in remote server and install httpd server 
+    hosts: devops
+    become: yes               # default become_user will root if not defined
+    tasks:
+    -   name: Create Unix user
+        user:
+            name: ansible
+            state: present
+            shell: /bin/bash
+            group: wheel
+        
+    -   name: httpd package  install
+        yum:
+            name: httpd
+            state: present
+    
+    -   name: httpd service start and enabled for boot
+        service:
+            name: httpd
+            state: started
+            enabled: yes
+    
+    -   name: Check httpd status
+        shell: |
+             systemctl status httpd
+             touch /home/ec2-user/ansible.txt
+
+    -   name: Copy files to remote server
+        copy:
+            src: /home/opstree/ansible.cfg
+            dest: /home/ec2-user/
+            owner: ec2-user
+            group: wheel
+            mode: 0777
+
+    
